@@ -50,7 +50,8 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
                     break;
                 }
             }else{
-                printf("Failed to create AppContainer, last error: %lu\n", HRESULT_CODE(result));
+                printf("Failed to create AppContainer, last error: %d\n", HRESULT_CODE(result));
+                break;
             }
             
         }
