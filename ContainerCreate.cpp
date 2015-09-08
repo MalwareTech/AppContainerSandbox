@@ -52,8 +52,7 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
             }else{
                 printf("Failed to create AppContainer, last error: %d\n", HRESULT_CODE(result));
                 break;
-            }
-            
+            }   
         }
 
         printf("[Container Info]\nname: %ws\ndescription: %ws\n", container_name, container_desc);
