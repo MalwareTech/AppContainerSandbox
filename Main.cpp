@@ -3,7 +3,7 @@
 #include "ContainerCreate.h"
 #include "ContainerTest.h"
 
-void main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     if(!IsInAppContainer())
     {
@@ -12,4 +12,6 @@ void main(int argc, char *argv[])
         RunContainerTests();
     }
     getchar();
+
+    return 0;
 }
