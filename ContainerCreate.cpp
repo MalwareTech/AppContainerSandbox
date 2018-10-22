@@ -28,7 +28,8 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
     PSID sid = NULL;
     HRESULT result;
     SECURITY_CAPABILITIES SecurityCapabilities = {0};
-    DWORD num_capabilities = 0, attribute_size = 0;;
+    DWORD num_capabilities = 0;
+    SIZE_T attribute_size = 0;
     STARTUPINFOEXA startup_info = {0};
     PROCESS_INFORMATION process_info = {0};
     CHAR desktop_file[MAX_PATH];
