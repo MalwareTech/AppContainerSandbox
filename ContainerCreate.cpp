@@ -28,7 +28,8 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
     PSID sid = NULL;
     HRESULT result;
     SECURITY_CAPABILITIES SecurityCapabilities = {0};
-    DWORD num_capabilities = 0, attribute_size = 0;;
+    DWORD num_capabilities = 0;
+    SIZE_T attribute_size = 0;
     STARTUPINFOEXA startup_info = {0};
     PROCESS_INFORMATION process_info = {0};
     CHAR desktop_file[MAX_PATH];
@@ -71,7 +72,7 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
         file_handle = CreateFileA(desktop_file, GENERIC_ALL, NULL, NULL, OPEN_ALWAYS, NULL, NULL);
         if(file_handle == INVALID_HANDLE_VALUE)
         {
-            printf("Failed to create file %s, last error: %d\n", desktop_file);
+            printf("Failed to create file %s, last error: %d\n", desktop_file, GetLastError());
             break;
         }
         
@@ -227,7 +228,7 @@ BOOL GrantNamedObjectAccess(PSID appcontainer_sid, CHAR *object_name, SE_OBJECT_
         status = SetEntriesInAclA(1, &explicit_access, original_acl, &new_acl);
         if(status != ERROR_SUCCESS)
         {
-            printf("SetEntriesInAclA() failed, error: %d\n", object_name, status);
+            printf("SetEntriesInAclA() failed for %s, error: %d\n", object_name, status);
             break;
         }
 
