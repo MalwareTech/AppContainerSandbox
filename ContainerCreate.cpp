@@ -26,12 +26,8 @@ BOOL GrantNamedObjectAccess(PSID appcontainer_sid, CHAR *object_name, SE_OBJECT_
 BOOL RunExecutableInContainer(CHAR *executable_path)
 {
     PSID sid = NULL;
-    HRESULT result;
     SECURITY_CAPABILITIES SecurityCapabilities = {0};
-    DWORD num_capabilities = 0;
-    SIZE_T attribute_size = 0;
     STARTUPINFOEXA startup_info = {0};
-    PROCESS_INFORMATION process_info = {0};
     CHAR desktop_file[MAX_PATH];
     HANDLE file_handle = INVALID_HANDLE_VALUE;
     CHAR *string_sid = NULL;
@@ -39,7 +35,7 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
 
     do //Not a loop
     { 
-        result = CreateAppContainerProfile(container_name, container_name, container_desc, NULL, 0, &sid);
+        HRESULT result = CreateAppContainerProfile(container_name, container_name, container_desc, NULL, 0, &sid);
         if(!SUCCEEDED(result))
         {
             if(HRESULT_CODE(result) == ERROR_ALREADY_EXISTS)
@@ -61,6 +57,7 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
         if(ConvertSidToStringSidA(sid, &string_sid))
             printf("Sid: %s\n\n", string_sid);
 
+        DWORD num_capabilities = 0;
         if(!SetSecurityCapabilities(sid, &SecurityCapabilities, &num_capabilities))
         {
             printf("Failed to set security capabilities, last error: %d\n", GetLastError());
@@ -82,6 +79,7 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
             break;
         }
 
+        SIZE_T attribute_size = 0;
         InitializeProcThreadAttributeList(NULL, 1, NULL, &attribute_size);
         startup_info.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST)malloc(attribute_size);
 
@@ -98,6 +96,7 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
             break;
         }
 
+        PROCESS_INFORMATION process_info = {0};
         if(!CreateProcessA(executable_path, NULL, NULL, NULL, FALSE, EXTENDED_STARTUPINFO_PRESENT, NULL, NULL, 
                            (LPSTARTUPINFOA)&startup_info, &process_info))
         {
@@ -136,12 +135,11 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
 */
 BOOL IsInAppContainer()
 {
-    HANDLE process_token;
-    BOOL is_container = 0; 
-    DWORD return_length;
-
+    HANDLE process_token = 0;
     OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &process_token);
 
+    BOOL is_container = 0; 
+    DWORD return_length = 0;
     if (!GetTokenInformation(process_token, TokenIsAppContainer, &is_container, sizeof(is_container), &return_length)) 
         return false;
 
@@ -153,19 +151,17 @@ BOOL IsInAppContainer()
 */
 BOOL SetSecurityCapabilities(PSID container_sid, SECURITY_CAPABILITIES *capabilities, PDWORD num_capabilities)
 {
-    DWORD sid_size = SECURITY_MAX_SID_SIZE;
     DWORD num_capabilities_ =  sizeof(app_capabilities) / sizeof(DWORD);
-    SID_AND_ATTRIBUTES *attributes;
-    BOOL success = TRUE;
-
-    attributes = (SID_AND_ATTRIBUTES *)malloc(sizeof(SID_AND_ATTRIBUTES) * num_capabilities_);
+    SID_AND_ATTRIBUTES* attributes = (SID_AND_ATTRIBUTES *)malloc(sizeof(SID_AND_ATTRIBUTES) * num_capabilities_);
 
     ZeroMemory(capabilities, sizeof(SECURITY_CAPABILITIES));
     ZeroMemory(attributes, sizeof(SID_AND_ATTRIBUTES) * num_capabilities_);
 
+    BOOL success = TRUE;
     for(unsigned int i = 0; i < num_capabilities_; i++)
     {
         attributes[i].Sid = malloc(SECURITY_MAX_SID_SIZE);
+        DWORD sid_size = SECURITY_MAX_SID_SIZE;
         if(!CreateWellKnownSid(app_capabilities[i], NULL, attributes[i].Sid, &sid_size))
         {
             success = FALSE;
@@ -200,13 +196,12 @@ BOOL SetSecurityCapabilities(PSID container_sid, SECURITY_CAPABILITIES *capabili
 */
 BOOL GrantNamedObjectAccess(PSID appcontainer_sid, CHAR *object_name, SE_OBJECT_TYPE object_type, DWORD access_mask)
 {
-    EXPLICIT_ACCESS_A explicit_access;
     PACL original_acl = NULL, new_acl = NULL;
-    DWORD status;
     BOOL success = FALSE;
 
     do 
     {
+        EXPLICIT_ACCESS_A explicit_access = {};
         explicit_access.grfAccessMode = GRANT_ACCESS;
         explicit_access.grfAccessPermissions =  access_mask;
         explicit_access.grfInheritance = OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE;
@@ -217,7 +212,7 @@ BOOL GrantNamedObjectAccess(PSID appcontainer_sid, CHAR *object_name, SE_OBJECT_
         explicit_access.Trustee.TrusteeForm = TRUSTEE_IS_SID;
         explicit_access.Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
 
-        status = GetNamedSecurityInfoA(object_name, object_type, DACL_SECURITY_INFORMATION, NULL, NULL, &original_acl, 
+        DWORD status = GetNamedSecurityInfoA(object_name, object_type, DACL_SECURITY_INFORMATION, NULL, NULL, &original_acl, 
                                        NULL, NULL);
         if(status != ERROR_SUCCESS)
         {
