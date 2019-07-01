@@ -88,7 +88,7 @@ void ProcessListTest()
         {
             do 
             {
-                printf("Found process: %ws\n", process_entry.szExeFile);
+                printf("Found process: %s\n", process_entry.szExeFile);
             } while (Process32Next(snapshot, &process_entry));
         }
         CloseHandle(snapshot);
