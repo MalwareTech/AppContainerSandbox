@@ -243,9 +243,6 @@ BOOL GrantNamedObjectAccess(PSID appcontainer_sid, CHAR *object_name, SE_OBJECT_
 
     } while (FALSE);
 
-   if(original_acl)
-       LocalFree(original_acl);
-
    if(new_acl)
        LocalFree(new_acl);
 
