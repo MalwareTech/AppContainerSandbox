@@ -76,7 +76,7 @@ void FilesystemTest()
 void ProcessListTest()
 {
     printf("[+] Running process list testing...\n");
-    tagPROCESSENTRY32W process_entry;
+	PROCESSENTRY32W process_entry;
     HANDLE snapshot;
 
     process_entry.dwSize = sizeof(process_entry);
@@ -84,12 +84,12 @@ void ProcessListTest()
     snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if(snapshot)
     {
-        if(Process32First(snapshot, &process_entry))
+        if(Process32First(snapshot, (LPPROCESSENTRY32)&process_entry))
         {
             do 
             {
                 printf("Found process: %s\n", process_entry.szExeFile);
-            } while (Process32Next(snapshot, &process_entry));
+            } while (Process32Next(snapshot, (LPPROCESSENTRY32)&process_entry));
         }
         CloseHandle(snapshot);
     }else{
