@@ -98,7 +98,17 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
             break;
         }
 
-        if(!CreateProcessA(executable_path, NULL, NULL, NULL, FALSE, EXTENDED_STARTUPINFO_PRESENT, NULL, NULL, 
+#define PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY \
+    ProcThreadAttributeValue (15, FALSE, TRUE, FALSE)
+
+		DWORD all_applications_package_policy = 0x01;
+		if (!UpdateProcThreadAttribute(startup_info.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY, &all_applications_package_policy,
+			sizeof(all_applications_package_policy), NULL, NULL)) {
+			printf("UpdateProcThreadAttribute() (2) failed, last error: %d", GetLastError());
+			break;
+		}
+
+		if(!CreateProcessA(executable_path, NULL, NULL, NULL, FALSE, EXTENDED_STARTUPINFO_PRESENT, NULL, NULL,
                            (LPSTARTUPINFOA)&startup_info, &process_info))
         {
             printf("Failed to create process %s, last error: %d\n", executable_path, GetLastError());
