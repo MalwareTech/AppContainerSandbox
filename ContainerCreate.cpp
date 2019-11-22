@@ -82,10 +82,10 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
             break;
         }
 
-        InitializeProcThreadAttributeList(NULL, 1, NULL, &attribute_size);
+        InitializeProcThreadAttributeList(NULL, 2, NULL, &attribute_size);
         startup_info.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST)malloc(attribute_size);
 
-        if(!InitializeProcThreadAttributeList(startup_info.lpAttributeList, 1, NULL, &attribute_size))
+        if(!InitializeProcThreadAttributeList(startup_info.lpAttributeList, 2, NULL, &attribute_size))
         {
             printf("InitializeProcThreadAttributeList() failed, last error: %d", GetLastError());
             break;
@@ -99,7 +99,7 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
         }
 
 #define PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY \
-    ProcThreadAttributeValue (15, FALSE, TRUE, FALSE)
+    ProcThreadAttributeValue (ProcThreadAttributeAllApplicationPackagesPolicy, FALSE, TRUE, FALSE)
 
 		DWORD all_applications_package_policy = 0x01;
 		if (!UpdateProcThreadAttribute(startup_info.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY, &all_applications_package_policy,
