@@ -82,10 +82,10 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
             break;
         }
 
-        InitializeProcThreadAttributeList(NULL, 1, NULL, &attribute_size);
+        InitializeProcThreadAttributeList(NULL, 2, NULL, &attribute_size);
         startup_info.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST)malloc(attribute_size);
 
-        if(!InitializeProcThreadAttributeList(startup_info.lpAttributeList, 1, NULL, &attribute_size))
+        if(!InitializeProcThreadAttributeList(startup_info.lpAttributeList, 2, NULL, &attribute_size))
         {
             printf("InitializeProcThreadAttributeList() failed, last error: %d", GetLastError());
             break;
@@ -98,7 +98,17 @@ BOOL RunExecutableInContainer(CHAR *executable_path)
             break;
         }
 
-        if(!CreateProcessA(executable_path, NULL, NULL, NULL, FALSE, EXTENDED_STARTUPINFO_PRESENT, NULL, NULL, 
+#define PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY \
+    ProcThreadAttributeValue (ProcThreadAttributeAllApplicationPackagesPolicy, FALSE, TRUE, FALSE)
+
+		DWORD all_applications_package_policy = 0x01;
+		if (!UpdateProcThreadAttribute(startup_info.lpAttributeList, 0, PROC_THREAD_ATTRIBUTE_ALL_APPLICATION_PACKAGES_POLICY, &all_applications_package_policy,
+			sizeof(all_applications_package_policy), NULL, NULL)) {
+			printf("UpdateProcThreadAttribute() (2) failed, last error: %d", GetLastError());
+			break;
+		}
+
+		if(!CreateProcessA(executable_path, NULL, NULL, NULL, FALSE, EXTENDED_STARTUPINFO_PRESENT, NULL, NULL,
                            (LPSTARTUPINFOA)&startup_info, &process_info))
         {
             printf("Failed to create process %s, last error: %d\n", executable_path, GetLastError());
@@ -242,9 +252,6 @@ BOOL GrantNamedObjectAccess(PSID appcontainer_sid, CHAR *object_name, SE_OBJECT_
         success = TRUE;
 
     } while (FALSE);
-
-   if(original_acl)
-       LocalFree(original_acl);
 
    if(new_acl)
        LocalFree(new_acl);
